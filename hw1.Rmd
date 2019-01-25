@@ -40,11 +40,11 @@ as_d <- import(here("data", "assessments.csv"),
 ```
 
 ```{r keys}
-student <- student %>% count(id_student, code_presentation, code_module) %>% filter(n>1)
+student %>% count(id_student, code_presentation, code_module) %>% filter(n>1)
 
-assessment <- assessment %>% count(id_student, id_assessment) %>%  filter(n>1)
+assessment %>% count(id_student, id_assessment) %>%  filter(n>1)
 
-as_d <- as_d %>% count(code_module, id_assessment) %>%  filter(n>1)
+as_d %>% count(code_module, id_assessment) %>%  filter(n>1)
 
 ```
 
@@ -60,12 +60,16 @@ jd %>% arrange(id_student) %>% head()
 ```
 
 ```{r mj2}
-right_join(student, assessment) #still duplicated values for student id
+rjd <- right_join(student, assessment) #still duplicated values for student id
+rjd %>% arrange(id_student) %>% head()
 ```
 
 ```{r mj3}
-right_join(assessment, as_d, by = "id_assessment") %>% 
+j_as_d <- right_join(assessment, as_d, by = "id_assessment") %>% group_by(id_student, id_assessment) %>% 
   arrange(id_student) 
+
+right_join(j_as_d, student) %>% arrange(id_student)
+
 ```
 
 1. Use at least 1 filtering join
