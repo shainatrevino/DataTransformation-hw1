@@ -24,6 +24,10 @@ You can download the data we’ll use for this homework either from kaggle (requ
 A total of seven datasets (tables) related to an online learning analytics project should be included with your download. A number of keys link the various sources of data. I recommend reading through the documentation provided by the organization to better understand these keys.
 
 ```{r import_data}
+library(tidyverse)
+library(rio)
+library(here)
+
 student <- import(here("data", "studentInfo.csv"),
                   setclass = "tbl_df")
 
@@ -36,11 +40,11 @@ as_d <- import(here("data", "assessments.csv"),
 ```
 
 ```{r keys}
-student %>% count(id_student, code_presentation, code_module) %>% filter(n>1)
+student <- student %>% count(id_student, code_presentation, code_module) %>% filter(n>1)
 
-assessment %>% count(id_student, id_assessment) %>%  filter(n>1)
+assessment <- assessment %>% count(id_student, id_assessment) %>%  filter(n>1)
 
-as_d %>% count(code_module, id_assessment) %>%  filter(n>1)
+as_d <- as_d %>% count(code_module, id_assessment) %>%  filter(n>1)
 
 ```
 
