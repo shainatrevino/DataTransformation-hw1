@@ -68,16 +68,23 @@ rjd %>% arrange(id_student) %>% head()
 j_as_d <- right_join(assessment, as_d, by = "id_assessment") %>% group_by(id_student, id_assessment) %>% 
   arrange(id_student) 
 
-right_join(j_as_d, student) %>% arrange(id_student)
+key_comp <- right_join(j_as_d, student) %>% arrange(id_student)
 
 ```
+
+```{r}
+key_comp1 <- key_comp %>% group_by(id_student) %>% select(id_student, gender, highest_education, final_result)
+
+full_join(av_score, key_comp, by = "id_student")
+```
+
 
 1. Use at least 1 filtering join
 
 ```{r}
-av_score <- jd %>% 
+av_score <- key_comp %>% 
   group_by(id_student) %>% 
-  summarize(av_score = mean(score))
+  summarize(av_score = mean(score)) %>% arrange(id_student)
 
 student1 <- student %>% group_by(id_student) %>% select(id_student, gender, highest_education, final_result)
 
