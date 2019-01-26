@@ -1,6 +1,6 @@
 ---
 title: "Homework 1"
-author: "Shaina Trevino"
+author: "Shaina Trevino & JP"
 date: "January 24, 2019"
 output: html_document
 ---
@@ -54,15 +54,6 @@ This primary components of this assignment are highly open-ended. These are to
 
 1. Use at least 3 mutating joins
 
-```{r mutating_join}
-jd <- left_join(student, assessment) #results in dulplicated values since there are more keys for student dataset 
-jd %>% arrange(id_student) %>% head()
-```
-
-```{r mj2}
-rjd <- right_join(student, assessment) #still duplicated values for student id
-rjd %>% arrange(id_student) %>% head()
-```
 
 ```{r mj3}
 j_as_d <- right_join(assessment, as_d, by = "id_assessment") %>% group_by(id_student, id_assessment) %>% 
