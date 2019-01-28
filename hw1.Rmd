@@ -7,6 +7,9 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(rio)
+library(here)
 ```
 
 ## Creating new visualizations through joins
@@ -24,10 +27,6 @@ You can download the data we’ll use for this homework either from kaggle (requ
 A total of seven datasets (tables) related to an online learning analytics project should be included with your download. A number of keys link the various sources of data. I recommend reading through the documentation provided by the organization to better understand these keys.
 
 ```{r import_data}
-library(tidyverse)
-library(rio)
-library(here)
-
 student <- import(here("data", "studentInfo.csv"),
                   setclass = "tbl_df")
 
@@ -39,7 +38,7 @@ as_d <- import(here("data", "assessments.csv"),
 
 ```
 
-```{r keys}
+```{r keys, include = FALSE}
 student %>% count(id_student, code_presentation, code_module) %>% filter(n>1)
 
 assessment %>% count(id_student, id_assessment) %>%  filter(n>1)
@@ -55,41 +54,80 @@ This primary components of this assignment are highly open-ended. These are to
 1. Use at least 3 mutating joins
 
 
-```{r mj3}
-j_as_d <- right_join(assessment, as_d, by = "id_assessment") %>% group_by(id_student, id_assessment) %>% 
+```{r mj_assessments, message = FALSE}
+j_as_d <- right_join(assessment, as_d, by = "id_assessment") %>%
+  group_by(id_student, id_assessment) %>% 
   arrange(id_student) 
-
-key_comp <- right_join(j_as_d, student) %>% arrange(id_student)
-
 ```
 
-```{r}
-key_comp1 <- key_comp %>% group_by(id_student) %>% select(id_student, gender, highest_education, final_result)
+```{r mj_studentinfo, message = FALSE}
+key_comp <- right_join(j_as_d, student) %>% 
+  arrange(id_student)
+```
+
+```{r fct_relevel, include = FALSE}
+key_comp <- key_comp %>% 
+  mutate(final_result = factor(final_result, levels = c("Fail", 
+                                                        "Withdrawn", 
+                                                        "Pass", 
+                                                        "Distinction")))
+```
+
+```{r mj_av_score}
+av_score <- key_comp %>% 
+  group_by(id_student) %>% 
+  summarize(av_score = mean(score)) %>% 
+  arrange(desc(av_score))
 
 full <- full_join(av_score, key_comp, by = "id_student")
 ```
 
+2. Use at least 1 filtering join
 
-1. Use at least 1 filtering join
 
-```{r}
-av_score <- key_comp %>% 
+```{r delete_duplicates, include = FALSE, eval = FALSE}
+## This code was not used in final version of rmd, but may be helpful in the future. 
+student1 <- student %>% 
   group_by(id_student) %>% 
-  summarize(av_score = mean(score)) %>% arrange(id_student)
+  select(id_student, gender, highest_education, final_result) %>% 
+  arrange(id_student)
 
-student1 <- student %>% group_by(id_student) %>% select(id_student, gender, highest_education, final_result)
+rj <- right_join(student1, av_score) %>% arrange(id_student) 
 
-semi_join(student1, av_score) %>% arrange(id_student) #some ids are repeated beacuse people took the test twice (different years/different results)
+rj1 <- distinct(rj, id_student, .keep_all = TRUE) %>% arrange(id_student)
+
+#some ids are repeated beacuse people took the test twice (different years/different results)
 ```
 
-1. Produce at least 3 data displays
+3. Produce at least 3 data displays
 
 Following the completion of these requirements, please reproduce the following figure.
 
-```{r plot}
-ggplot(full, aes(x = highest_education, y = av_score)) +
-  geom_col(aes(fill = gender), position = "dodge") +
-  facet_wrap(~ final_result) +
-  coord_flip()
+```{r mj_plotdata}
+pd <- key_comp %>% filter(assessment_type == "TMA") %>% 
+  group_by(gender, final_result, highest_education) %>% 
+  summarize(av_score = mean(score, na.rm = TRUE)) %>% 
+  mutate(highest_education = fct_reorder(highest_education, av_score))
+```
+
+```{r plot, fig.height = 12}
+ggplot(pd, aes(x = fct_relevel(highest_education,"No Formal quals", 
+                               "Lower Than A Level", 
+                               "A Level or Equivalent", 
+                               "HE Qualification",
+                               "Post Graduate Qualification"), y = av_score)) +
+  geom_col(aes(fill = gender), position = "dodge", alpha = .6) +
+  scale_fill_manual(values = c("#00BFC4", "#F8766D")) +
+  facet_wrap(~ final_result, ncol = 1, strip.position = "top") +
+  coord_flip() +
+  theme_minimal() +
+  labs(title = "Average TMA Scores",
+       subtitle = "Results displayed by Education, Gender, and Final Results Designation",
+       x = "Highest Education",
+       y = "Average Score",
+       caption = "Data from Kuzilek, Hlosta, & Zdrahal (2017). 
+       https://analyse.kmi.open.ac.uk/open_dataset",
+       fill = "Gender")
+
 ```
 
