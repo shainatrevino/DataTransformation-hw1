@@ -84,7 +84,7 @@ full <- full_join(av_score, key_comp, by = "id_student")
 
 2. Use at least 1 filtering join
 
-```{r filtering join}
+```{r filtering join, message = FALSE, warning = FALSE}
 fj_d <- key_comp %>% 
   group_by(id_student, id_assessment, code_module) %>% 
   summarize(avg_score = mean(score, na.rm = TRUE))
@@ -116,7 +116,7 @@ rj1 <- distinct(rj, id_student, .keep_all = TRUE) %>% arrange(id_student)
 3. Produce at least 3 data displays
 
 
-```{r data displays}
+```{r data displays, message = FALSE, warning = FALSE}
 ggplot(full, aes(x = score)) +
   geom_histogram(color = "white",
                  aes(fill = gender),
