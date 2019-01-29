@@ -120,7 +120,8 @@ rj1 <- distinct(rj, id_student, .keep_all = TRUE) %>% arrange(id_student)
 ggplot(full, aes(x = score)) +
   geom_histogram(color = "white",
                  aes(fill = gender),
-                 position = "dodge") +
+                 position = "dodge",
+                 bins = 20) +
   coord_flip()
   
 
